@@ -1,0 +1,13 @@
+.venv/
+__pycache__/
+*.csv
+!taxi_zone_lookup*.csv
+*.db
+.DS_Store
+*.sqlite
+*.parquet
+*.shp
+*.shx
+*.dbf
+*.prj
+*.cpg
