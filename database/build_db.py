@@ -79,7 +79,7 @@ def find_bad_rows(df, start, end):
     return reason 
 
 def load_trips(con, trip_file, start, end):
-    start. end = pd.Timestamp(start), pd. Timestamp(end)
+    start, end = pd.Timestamp(start), pd.Timestamp(end)
     next_id = 1 + con.execute("SELECT  COALESCE(MAX(trip_id), 0) FROM trip").fetchone()[0]
 
     for df in read_in_chunks(trip_file):
