@@ -66,9 +66,9 @@ def find_bad_rows(df, start, end):
         ("IMPOSSIBLE_SPEED", speed > 100),
         ("NEGATIVE_AMOUNT", (df["fare_amount"] < 0) | (df["total_amount"] < 0) | (df["tip_amount"] < 0)),
         ("BAD_LOCATION_ID", ~df["PULocationID"].between(1, 265) | ~df["DOLocationID"].between(1, 265)), 
-        ("UKNOWN_VENDOR", ~df["VendorID"].isin(VENDORS)),
-        ("UKNOWN_PAYMENT_TYPE", ~df["payment_type"].isin(PAYMENTS)),
-        ("UKNOWN_RATE_CODE", ~df["RatecodeID"].isin(RATE_CODES)),
+        ("UNKNOWN_VENDOR", ~df["VendorID"].isin(VENDORS)),
+        ("UNKNOWN_PAYMENT_TYPE", ~df["payment_type"].isin(PAYMENTS)),
+        ("UNKNOWN_RATE_CODE", ~df["RatecodeID"].isin(RATE_CODES)),
 
     ]
 
