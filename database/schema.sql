@@ -90,6 +90,14 @@ CREATE TABLE IF NOT EXISTS excluded_record(
 
 );
 
+CREATE TABLE IF NOT EXISTS suspicious_record(
+    log_id       INTEGER PRIMARY KEY AUTOINCREMENT,
+    source_file  TEXT,
+    source_row   INTEGER,
+    reason_code TEXT NOT NULL
+     
+);
+
 -- INDEXES: make the dashboard faster
 
 CREATE INDEX IF NOT EXISTS idx_trip_pickup      ON trip(pickup_datetime);

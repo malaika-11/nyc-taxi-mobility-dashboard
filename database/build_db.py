@@ -2,11 +2,17 @@ import argparse, json, sqlite3
 import pandas as pd
 import pyarrow.parquet as pq
 import shapefile 
+import numpy as np
 from pyproj import Transformer
 
 VENDORS = {1: "Creative Mobile Technologies", 2: "Curb Mobility", 6:"Myle Technologies", 7: "Helix" }
 RATE_CODES = {1: "Standard", 2: "JFK", 3: "Newark", 4: "Nassau/Westchester", 5: "Negotiated", 6: "Group ride", 99: "Unknown"}
 PAYMENTS = {0: "Flex Fare", 1: "Credit card", 2: "Cash", 3: "No charge", 4: "Dispute", 5: "Unknown", 6: "Voided"}
+
+MAX_DISTANCE_MILES = 100
+MAX_FARE_DOLLARS = 500
+MAX_SPEED_MPH = 100
+SUSPICIOUS_SPEED_MPH = 70
 
 def setup_zones(con, lookup_file, shp_file):
 
@@ -49,8 +55,28 @@ def read_in_chunks(path):
     df = pd.read_parquet(path)
     return[df[i:i + size] for i in range (0, len(df), size)]
 
+def find_duplicates(df, seen):
+    key = ["VendorID", "tpep_pickup_datetime", "tpep_dropoff_datetime", "PULocationID", "DOLocationID", "trip_distance", "total_amount"]
+    fingerprints = pd.util.hash_pandas_object(df[key], index=False).to_numpy()
+    repeated_in_chunk = pd.Series(fingerprints).duplicated().to_numpy()
+    seen_in_earlier_chunk = np.isin(fingerprints, seen)
+    duplicate = repeated_in_chunk | seen_in_earlier_chunk
+    seen = np.concatenate([seen, fingerprints[~duplicate]])
+    return pd.Series(duplicate, index=df.index), seen
 
-def find_bad_rows(df, start, end):
+def find_suspicious(df):
+    rules = [
+        ("ODD_PASSENGER_COUNT", df["passenger_count"].isna() | (df["passenger_count"] ==0) | (df["passenger_count"] > 6)),
+        ("FAST_TRIP", df["avg_speed_mph"] > SUSPICIOUS_SPEED_MPH),
+        ("TOTAL_BELOW_FARE", df ["total_amount"] < df["fare_amount"]), 
+    ]
+    reason = pd.Series("", index=df.index)
+    for name, broken in rules:
+        reason[(reason =="") & broken] = name
+    return reason     
+
+
+def find_bad_rows(df, start, end, duplicate):
     pickup = df["tpep_pickup_datetime"]
     dropoff = df["tpep_dropoff_datetime"]
     hours = (dropoff -pickup). dt.total_seconds() /3600
@@ -69,6 +95,9 @@ def find_bad_rows(df, start, end):
         ("UNKNOWN_VENDOR", ~df["VendorID"].isin(VENDORS)),
         ("UNKNOWN_PAYMENT_TYPE", ~df["payment_type"].isin(PAYMENTS)),
         ("UNKNOWN_RATE_CODE", ~df["RatecodeID"].isin(RATE_CODES)),
+        ("DISTANCE_OVER_LIMIT", df["trip_distance"] > MAX_DISTANCE_MILES),
+        ("FARE_OVER_LIMIT", df["fare_amount"] > MAX_FARE_DOLLARS),
+        ("DUPLICATE_ROW", duplicate),
 
     ]
 
@@ -80,6 +109,7 @@ def find_bad_rows(df, start, end):
 def load_trips(con, trip_file, start, end):
     start, end = pd.Timestamp(start), pd.Timestamp(end)
     next_id = 1 + con.execute("SELECT  COALESCE(MAX(trip_id), 0) FROM trip").fetchone()[0]
+    seen = np.array([], dtype="uint64")
 
     for df in read_in_chunks(trip_file):
         df = df.rename(columns={"Airport_fee": "airport_fee"})
@@ -88,7 +118,8 @@ def load_trips(con, trip_file, start, end):
                 df[col] = 0
             df[col] = df[col].fillna(0)
         df ["RatecodeID"] = df["RatecodeID"].fillna(99).astype(int)
-        reason = find_bad_rows(df, start, end)
+        duplicate, seen = find_duplicates(df, seen)
+        reason = find_bad_rows(df, start, end, duplicate)
         log = pd.DataFrame({"source_file": trip_file, "source_row": df.index[reason != ""], "reason_code": reason[reason != ""]})
         log.to_sql("excluded_record", con, if_exists="append", index=False)
         df =df[reason == ""].copy()
@@ -101,6 +132,9 @@ def load_trips(con, trip_file, start, end):
         paid_by_card = (df["payment_type"] == 1) & (df["fare_amount"] >0)
         df["tip_pct"] = (df["tip_amount"] / df["fare_amount"] * 100).where(paid_by_card)
         df["store_and_fwd"] = df["store_and_fwd_flag"].map({"Y": True, "N": False})
+        flagged = find_suspicious(df)
+        odd = pd.DataFrame({"source_file": trip_file, "source_row": df.index[flagged != ""], "reason_code": flagged[flagged != ""]})
+        odd.to_sql("suspicious_record", con, if_exists="append", index=False)
 
         df["pickup_datetime"] = df["tpep_pickup_datetime"].dt.strftime("%Y-%m-%d %H:%M:%S")
         df["dropoff_datetime"] = df["tpep_dropoff_datetime"].dt.strftime("%Y-%m-%d %H:%M:%S")
@@ -113,7 +147,7 @@ def load_trips(con, trip_file, start, end):
         df[trip_columns].to_sql("trip", con, if_exists="append", index=False)
         df[fare_columns].to_sql("trip_fare", con, if_exists="append", index=False)
         con.commit()
-        print ("loaded", len(df), "trips, excluded", len(log))
+        print ("loaded", len(df), "trips, excluded", len(log), ", flagged", len(odd))
 
 
 parser = argparse.ArgumentParser()
