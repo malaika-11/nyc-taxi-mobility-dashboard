@@ -13,10 +13,10 @@ app = Flask(
     static_url_path="",
 )
 
-def query database(sql. parameters=()) :
+def query_database(sql, parameters=()):
     if not DB_PATH.exists():
        raise FileNotFoundError(
-           "Database not found. Run scripts/build_database.py first."
+           "Database not found. Run database/build_dba.py first."
        )
 
     connection = sqlite3.connect(DB_PATH)
@@ -27,16 +27,16 @@ def query database(sql. parameters=()) :
         return [dict(row) for row in rows]
 
     finally:
-         connection.close()
+        connection.close()
 
 @app.route("/")
 def home():
-return send_from_directory(FRONTEND_DIR, "index.html")
+    return send_from_directory(FRONTEND_DIR, "index.html")
 
 @app.route("/api/health")
 def health():
-return jsonify({
-        "status": "ok"
+    return jsonify({
+        "status": "ok",
         "project": "NYC Taxi Mobility Data Explorer",
         "database_exists": DB_PATH.exists(),
     })
@@ -61,7 +61,7 @@ def weekday_demand():
         "Monday", "Tuesday", "Wednesday", "Thursday", "Friday" , "Saturday" , "Sunday" ,
     ]
     positions = {day: index for index, day in enumerate(order)}
-    rows.sort(key-lambda row: positions.get(row["day_of_week"], 99))
+    rows.sort(key=lambda row: positions.get(row["day_of_week"], 99))
     return jsonify(rows)
 
 @app.route("/api/weekday-average")
