@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>NYC Taxi Mobility Dashboard</title>
+    <link rel="stylesheet" href="css/style.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+    <script type="module" src="js/dashboard"></script>
+</head>
+<body>
+
+  <header class="site-header">
+    <h1>NYC Taxi Mobility Dashboard</h1>
+    <p class="tagline">New York's yellow cabs move through the day, the week, and the city.</p>
+  </header>
+  <main>
+    <div id="status-banner" class="status-banner" role="status" hidden></div>
+
+    <section id="summary" class="cards" aria-label="Summary metrics">
+        <article class="card"><h2>Total Trips</h2><p id="metric-total-trips">-</p></article>
+        <article class="card"><h2>Average Distance(mi)</h2><p id="metric-average-distance">-</p></article>
+        <article class="card"><h2>Average Fare($)</h2><p id="metric-average-fare">-</p></article>
+        <article class="card"><h2>Busiest Hour</h2><p id="metric-busiest-hour">-</p></article>
+    </section>
+
+    <section id="filters" class="filters" aria-label="Filters">
+    <h2>Filter Trips</h2>
+    <div class="filter grid">
+    <label>From date <input type="date" id="filter-from-date"></label>
+    <label>To date<input type="date" id="filter-to-date"></label>
+
+    <label>Min Distance(mi)<input type="number" id="filter-min-distance" min="0" step="0.1"></label>
+    <label>Max Distance(mi)<input type="number" id="filter-max-distance" min="0" step="0.1"></label>
+
+    <label>Min Fare($)<input type="number" id="filter-min-fare" min="0" step="0.5"></label>
+    <label>Max Fare($)<input type="number" id="filter-max-fare" min="0" step="0.5"></label>
+
+    <label>Pickup Borough
+     <select id="filter-pu-borough"><option value="">All</option></select>
+    </label>
+
+    <label> Dropoff Borough
+     <select id="filter-do-borough"><option value="">All</option></select>
+     </label>
+    
+    <label> Sort by
+     <select id="filter-sort">
+       <option value="pickup_datetime">Date</option>
+       <option value="trip distance">Distance</option>
+       <option value="total amount">Fare</option>
+     </select>
+    </label>
+    <label>Order
+        <select id="sort by">
+        <option value="desc">Descending</option>
+        <option value="asc">Ascending</option>
+        </select>
+    </label>
+    </div>
+    <div class="filter-actions">
+        <button type="button" id="filter-apply">Apply</button>
+        <button type="button" id="reset-filters" class="secondary">Reset</button>
+    </div>
+    <p id="filter-error" class="field-error" hidden></p>
+    </section>
+  
+    <section id="charts" class="charts" aria-label="Charts">
+        <article class="chart-card">
+            <h2>Trips by hour of day</h2>
+            <canvas id="chart-hourly"></canvas>
+        </article>
+        <article class="chart-card">
+            <h2>Average trips by weekday</h2>
+            <canvas id="chart-weekday"></canvas>
+        </article>
+        <article class="chart-card">
+            <h2>Daily trip volume</h2>
+            <canvas id="chart-daily"></canvas> 
+        </article>
+    </section>
+
+    <section id="insights" class="insights" aria-label="Insights">
+        <h2>Key Insights</h2>
+        <div id="insight-list"></div>
+    </section>
+
+    <section id="trips" class="trips" aria-label="Trips">
+        <h2>Trips</h2>
+        <div class="table-wrap">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Pickup Time</th>
+                        <th>Pickup Zone</th>
+                        <th>Dropoff Zone</th>
+                        <th>Distance(mi)</th>
+                        <th>Total ($)</th>
+                    </tr>
+                </thead>
+                <tbody id="trips-body"></tbody>
+            </table>
+        </div>
+        <div class="pagination">
+            <button type="button" id="prev-page" class="secondary">Previous</button>
+            <span id="page-info">Page 1</span>
+            <button type="button" id="next-page" class="secondary">Next</button>
+        </div>
+    </section>
+
+    <aside id="trip-detail" class="trip-detail" aria-label="Trip detail" hidden>
+        <button type="button" id="close-detail" class="secondary">Close</button>
+        <div id="trip-detail-content"></div>
+    </aside>
+  </main>
+
+  <footer class="site-footer">
+    <p>Data: NYC TLC Yellow Taxi trip records.</p>
+  </footer>
+
+  </body>
+</html>
