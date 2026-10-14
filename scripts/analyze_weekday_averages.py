@@ -7,7 +7,13 @@ INPUT_FILE = ROOT_DIR / "outputs" / "daily_demand.csv"
 OUTPUT_FILE = ROOT_DIR / "outputs" / "average_daily_demand.csv"
 
 WEEKDAYS = [
-    "Monday", "Tuesday" , "Wednesday" , "Thursday" , "Friday" , "Saturday" , "Sunday" ,
+    "Monday", 
+    "Tuesday",
+    "Wednesday",
+    "Thursday", 
+    "Friday",
+    "Saturday",
+    "Sunday",
 ]
 
 def calculate_averages():
@@ -39,9 +45,9 @@ def calculate_averages():
 
             pickups = int(row["pickups"])
             totals[weekday] += pickups
-            days_count[weekday] +=1
+            days_count[weekday] += 1
 
-    with OUTPUT_FILE.open("w", newline="", encodig="utf-8") as file:
+    with OUTPUT_FILE.open("w", newline="", encoding="utf-8") as file:
         fieldnames = [
            "weekday",
             "total_pickups",
@@ -49,8 +55,8 @@ def calculate_averages():
             "average_daily_pickups",
         ]
 
-        writer = csv.DictWriter(file, fieldnames=fieldames)
-        writer.writeheader
+        writer = csv.DictWriter(file, fieldnames=fieldnames)
+        writer.writeheader()
 
         for weekday in WEEKDAYS:
             count = days_count[weekday]
