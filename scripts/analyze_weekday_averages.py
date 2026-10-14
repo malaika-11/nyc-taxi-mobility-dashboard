@@ -49,7 +49,7 @@ def calculate_averages():
 
     with OUTPUT_FILE.open("w", newline="", encoding="utf-8") as file:
         fieldnames = [
-           "weekday",
+            "weekday",
             "total_pickups",
             "number_of_days",
             "average_daily_pickups",
@@ -74,13 +74,13 @@ def calculate_averages():
                 "average_daily_pickups": f"{average:.2f}",
             })
 
-        print(f"Average demand saved to: {OUTPUT_FILE}")
-        print("\nAverage daily taxi pickups by weekday:")
+    print(f"Average demand saved to: {OUTPUT_FILE}")
+    print("\nAverage daily taxi pickups by weekday:")
 
-        for weekday in WEEKDAYS:
-            count = days_count[weekday]
-            average = totals[weekday] / count if count else 0
-            print(f"{weekday}: {average:,.2f} pickups per day ({count} days)")
-
+    for weekday in WEEKDAYS:
+        count = days_count[weekday]
+        average = totals[weekday] / count if count else 0
+        print(f"{weekday}: {average:,.2f} pickups per day ({count} days)")
+            
 if __name__ == "__main__":
     calculate_averages()
