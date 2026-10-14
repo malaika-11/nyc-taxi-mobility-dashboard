@@ -112,4 +112,3 @@ JOIN borough pb      ON pb.borough_id = pz.borough_id
 JOIN zone dz         ON dz.location_id = t.do_location_id
 JOIN borough db      ON db.borough_id = dz.borough_id
 JOIN payment_type p  ON p.payment_type_id = t.payment_type_id;
-
