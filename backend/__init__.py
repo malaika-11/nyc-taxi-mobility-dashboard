@@ -5,7 +5,7 @@ from flask import Flask, jsonify, send_from_directory
 
 ROOT = Path(__file__).resolve().parents[1]
 FRONTEND_DIR = ROOT / "frontend"
-DB_PATH = ROOT / "outputs" / "taxi_mobility.db"
+DB_PATH = ROOT / "database" / "taxi.db"
 
 app = Flask(
     __name__,

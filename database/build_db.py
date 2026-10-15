@@ -89,7 +89,7 @@ def find_bad_rows(df, start, end, duplicate):
         ("DROPOFF_NOT_AFTER_PICKUP", dropoff <= pickup),
         ("TRIP_OVER_24_HOURS", hours > 24), 
         ("ZERO_OR_NEGATIVE_DISTANCE", df["trip_distance"] <= 0),
-        ("IMPOSSIBLE_SPEED", speed > 100),
+        ("IMPOSSIBLE_SPEED", speed > MAX_SPEED_MPH),
         ("NEGATIVE_AMOUNT", (df["fare_amount"] < 0) | (df["total_amount"] < 0) | (df["tip_amount"] < 0)),
         ("BAD_LOCATION_ID", ~df["PULocationID"].between(1, 265) | ~df["DOLocationID"].between(1, 265)), 
         ("UNKNOWN_VENDOR", ~df["VendorID"].isin(VENDORS)),

@@ -9,7 +9,7 @@ FRONTEND_DIR = ROOT / "frontend"
 
 #the app will use the firts database file it finds
 DB_CANDIDATES = [
-    ROOT / "outputs" / "taxi.db",
+    ROOT / "database" / "taxi.db",
     ROOT /"database" / "taxi.db",
 ]
 
