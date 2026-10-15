@@ -12,3 +12,5 @@ __pycache__/
 *.prj
 *.cpg
 .venv/
+.venv/
+.venv-1/

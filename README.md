@@ -4,8 +4,8 @@ A full-stack application that cleans the NYC Yellow Taxi trip data (January 2019
 SQLite database, serves it through a Flask API, and shows it on a web dashboard.
 
 •⁠  ⁠*Video walkthrough:* <<VIDEO LINK HERE>>
-•⁠  ⁠*GitHub repository:* <<REPO LINK HERE>>
-
+•⁠  ⁠*GitHub repository:* <<https://github.com/malaika-11/nyc-taxi-mobility-dashboard.git>>
+.  *Team Task Sheet:* <<https://docs.google.com/spreadsheets/d/1TfQLnFrukclGGabRTPRnTWjI8un_2a0tNHR69zOttl0/edit?usp=sharing>>
 
 ## 1. What the system does
 
@@ -155,7 +155,7 @@ curl http://127.0.0.1:5000/api/summary
 
 From the repository root, with the database built:
 
-python -m unittest tests.test_demand_api
+python -m unittest teststest_demand_api
 
 The tests check the health endpoint, the home page, and the demand endpoints.
 
@@ -214,7 +214,7 @@ file that every team member can copy, with no server to install.
 •⁠  ⁠*Map shapes:* ⁠ zone_geometry ⁠ holds one GeoJSON polygon per row, kept apart from ⁠ zone ⁠ because it is large.
 •⁠  ⁠*Trips:* ⁠ trip ⁠ (movement data and derived features) and ⁠ trip_fare ⁠ (money data), one row each per trip.
 •⁠  ⁠*Logs:* ⁠ excluded_record ⁠ and ⁠ suspicious_record ⁠.
-•⁠  ⁠*View:* ⁠ v_trip_full ⁠ joins trips with zone, borough and payment names.
+•⁠  ⁠*View:* ⁠ v_trip_full ⁠ joins trips with zone, borough, and payment names.
 •⁠  ⁠*Indexes:* pickup time, pickup zone, dropoff zone, day and hour together, distance, payment type, total fare.
 •⁠  ⁠*Constraints:* distance and duration above 0, fares and tips not negative, all codes must exist in their lookup tables.
 •⁠  ⁠*Summary tables* (built by ⁠ summary_tables.sql ⁠): ⁠ hourly_demand ⁠, ⁠ weekday_demand ⁠, ⁠ daily_demand ⁠, ⁠ weekday_average ⁠,
@@ -228,16 +228,12 @@ sqlite3 taxi.db ".schema" > schema_dump.sql
 
 ## 10. Algorithm written by hand
 
-<<DESCRIBE THE ALGORITHM THE TEAM IMPLEMENTED WITHOUT BUILT-IN HELPERS: WHERE THE CODE IS, WHAT PROBLEM IT SOLVES,
-AND A LINK TO THE PSEUDOCODE AND COMPLEXITY IN THE REPORT>>
+
 
 ## 11. Project structure
 
-<<REPLACE WITH THE REAL TREE FROM ⁠ git ls-files ⁠ — THIS IS THE EXPECTED LAYOUT>>
-
 nyc-taxi-mobility-dashboard/
 ├── backend/
-│   ├── __init__.py
 │   └── app.py
 ├── frontend/
 │   └── index.html            (plus its CSS and JavaScript files)
@@ -245,7 +241,7 @@ nyc-taxi-mobility-dashboard/
 │   ├── build_db.py
 │   ├── schema.sql
 │   ├── summary_tables.sql
-│   └── (data files go here, not committed)
+│   └── data
 ├── scripts/                  (analysis helpers)
 ├── tests/
 │   └── test_demand_api.py
