@@ -13,7 +13,7 @@
 --shadow: 0 1px 3px rgba(20, 33, 61, 0.1);
 }
 
-* {box-sizing: boder-box; }
+* {box-sizing: border-box; }
 
 body{
     margin: 0;
@@ -53,7 +53,7 @@ h2 {margin: 0 0 0.75rem;font-size: 1.05rem; }
     padding: 0.75rem 1rem;
     border-radius: var(--radius);
     background: #fff7de;
-    border: 1px solid
+    border: 1px solid #f0d27a;
 }
 
 .status-banner.error { background: #fdecea; border-color: var(--danger); color: var(--danger);}
@@ -86,7 +86,7 @@ h2 {margin: 0 0 0.75rem;font-size: 1.05rem; }
 
 .filter-grid {
     display: grid;
-    grid-template-columns: repeat(autofit, minmax(170px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
     gap: var(--gap);
 }
 .filter-grid label {
@@ -134,9 +134,9 @@ button:disabled { opacity: 0.5; cursor: not-allowed; }
 .chart-card.wide { grid-column: 1 / -1; }
 .chart-card canvas { display: block; width: 100%; }
 
-#insights-list {
+#insight-list {
     display: grid;
-    grid-template-columns: repeat(autofit, minmax(240px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
     gap: var(--gap);
 }
 .table-wrap { overflow-x: auto; }
@@ -151,7 +151,7 @@ tbody tr:hover { background: #fff7de; }
     align-items: center;
     justify-content: center;
     gap: var(--gap);
-    margin-top: var(--gap)
+    margin-top: var(--gap);
 }
 
 .trip-detail { 
@@ -174,3 +174,10 @@ tbody tr:hover { background: #fff7de; }
     .cards p { font-size: 1.4rem; }
     .site-header h1 { font-size: 1.3rem; }
 }
+.trips h2 small { font-weight :400; color: var(--muted); font-size: 0.8rem; }
+.insights article { background: #f7f9fc; border: 1px solid var(--border); border-radius: var(--radius); padding: 0.75rem 1rem; }
+.insights h3 { margin: 0 0 0.25rem; font-size: 0.95rem; }
+.insights p { margin: 0; color: var(--muted); font-size: 0.92rem; }
+.trip-detail dl { display: grid; grid-template-columns: 9rem 1fr; gap: 0.4rem 0.75rem; margin: 0; }
+.trip-detail dt { color: var(--muted); font-size: 0.85rem; }
+.trip-detail dd { margin: 0; font-weight: 600; word-break: break-word; } 
