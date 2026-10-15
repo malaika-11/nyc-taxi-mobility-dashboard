@@ -7,7 +7,13 @@ INPUT_FILE = ROOT_DIR / "outputs" / "daily_demand.csv"
 OUTPUT_FILE = ROOT_DIR / "outputs" / "average_daily_demand.csv"
 
 WEEKDAYS = [
-    "Monday", "Tuesday" , "Wednesday" , "Thursday" , "Friday" , "Saturday" , "Sunday" ,
+    "Monday", 
+    "Tuesday",
+    "Wednesday",
+    "Thursday", 
+    "Friday",
+    "Saturday",
+    "Sunday",
 ]
 
 def calculate_averages():
@@ -39,18 +45,18 @@ def calculate_averages():
 
             pickups = int(row["pickups"])
             totals[weekday] += pickups
-            days_count[weekday] +=1
+            days_count[weekday] += 1
 
-    with OUTPUT_FILE.open("w", newline="", encodig="utf-8") as file:
+    with OUTPUT_FILE.open("w", newline="", encoding="utf-8") as file:
         fieldnames = [
-           "weekday",
+            "weekday",
             "total_pickups",
             "number_of_days",
             "average_daily_pickups",
         ]
 
-        writer = csv.DictWriter(file, fieldnames=fieldames)
-        writer.writeheader
+        writer = csv.DictWriter(file, fieldnames=fieldnames)
+        writer.writeheader()
 
         for weekday in WEEKDAYS:
             count = days_count[weekday]
@@ -68,13 +74,13 @@ def calculate_averages():
                 "average_daily_pickups": f"{average:.2f}",
             })
 
-        print(f"Average demand saved to: {OUTPUT_FILE}")
-        print("\nAverage daily taxi pickups by weekday:")
+    print(f"Average demand saved to: {OUTPUT_FILE}")
+    print("\nAverage daily taxi pickups by weekday:")
 
-        for weekday in WEEKDAYS:
-            count = days_count[weekday]
-            average = totals[weekday] / count if count else 0
-            print(f"{weekday}: {average:,.2f} pickups per day ({count} days)")
-
+    for weekday in WEEKDAYS:
+        count = days_count[weekday]
+        average = totals[weekday] / count if count else 0
+        print(f"{weekday}: {average:,.2f} pickups per day ({count} days)")
+            
 if __name__ == "__main__":
     calculate_averages()
