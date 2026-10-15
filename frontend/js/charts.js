@@ -19,7 +19,7 @@ function pick(row, keys, fallback = undefined) {
     return fallback;
 }
 
-const hourlabel = hour => '${String(hour).padStart(2, "0")}:00';
+const hourlabel = hour => `${String(hour).padStart(2, "0")}:00`;
 
 function createDemandChart(canvasId, type, labels, values, label, xTitle) {
     const canvas = document.getElementById(canvasId);
@@ -67,7 +67,11 @@ function createDemandChart(canvasId, type, labels, values, label, xTitle) {
 }
 
 export function renderHourlyChart(rows) {
-const sorted = [...rows].sort(a, b) = 
+const sorted = [...rows].sort((a, b) =>
+    Number(pick(a, FIELDS.hourly.label, 0)) -
+    Number(pick(b, FIELDS.hourly.label, 0))
+);
+
 Number(pick(a, FIELDS.hourly.label, 0)) - Number(pick(b, FIELDS.hourly.label, 0));
 createDemandChart(
     "chat-hourly", "bar",
@@ -98,7 +102,20 @@ export function normalizeWeekdayRows(rows) {
     return normalized;
 }
 
-export function rederDailyChart(rows) {
+export function renderWeekdayChart(rows) {
+    const normalized = normalizeWeekdayRows(rows);
+
+    createDemandChart(
+        "chart-weekday",
+        "bar",
+        normalized.map(row => row.dayName),
+        normalized.map(row => row.value),
+        "Average daily taxi pickups",
+        "Day of week"
+    );
+}
+
+export function renderDailyChart(rows) {
     const sorted = [...rows].sort((a, b) =>
       String(pick(a, FIELDS.daily.label, "")).localeCompare(String(pick(b, FIELDS.daily.label, ""))));
     createDemandChart(
