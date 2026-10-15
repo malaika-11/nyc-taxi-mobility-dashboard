@@ -2,7 +2,7 @@ const WEEKDAYS = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Satur
 const COLORS = { accent: "#f5b301", accentSoft: "rgba(245, 179, 1, 0.25)", navy: "#14213d" };
 
 export const FIELDS = {
-    hourly: { label: ["hour", "pickup_hour"]
+    hourly: { label: ["hour", "pickup_hour"],
         value: ["pickups", "count", "total_pickups", "trips", "trip_count" ] },
     weekday: { label: ["weekday", "day", "day_name", "pickup_dow", "day_of_week", "dow"],
         value: ["average_daily_pickups", "average_pickups", "avg_pickups", "pickups", "total_pickups", "count", "trips"] },
