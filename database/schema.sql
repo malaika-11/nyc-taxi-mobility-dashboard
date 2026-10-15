@@ -107,6 +107,8 @@ CREATE INDEX IF NOT EXISTS idx_trip_hour_dow    ON trip(pickup_dow, pickup_hour)
 CREATE INDEX IF NOT EXISTS idx_trip_distance    ON trip (trip_distance);
 CREATE INDEX IF NOT EXISTS idx_trip_payment     ON trip(payment_type_id);
 CREATE INDEX IF NOT EXISTS idx_fare_total       ON trip_fare(total_amount);
+CREATE INDEX IF NOT EXISTS idx_fare_amount      ON trip_fare(fare_amount);
+CREATE INDEX IF NOT EXISTS idx_trip_duration    ON trip(duration_min);
 
 -- trips joined with zone names
 
