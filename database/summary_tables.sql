@@ -23,4 +23,3 @@ JOIN (SELECT CASE strftime('%w', date) WHEN '1' THEN 'Monday' WHEN '2' THEN 'Tue
 CREATE TABLE period_demand AS
 SELECT CASE WHEN pickup_dow >= 5 THEN 'Weekend' ELSE 'Weekday' END AS period, COUNT(*) AS pickup_count FROM trip GROUP BY 1;
 
-
