@@ -25,12 +25,3 @@ Busiest hour: 18:00 (505,201 pickups)
 Quietest hour: 4:00 (59,184 pickups)
 Busiest weekday by total: Thursday(1,327,275 pickups)
 Generated all five demand CSV files successfully.
-
-Analysis run: 2026-10-15T10:51:08
-Database: /Users/user/Summative-web dev/nyc-taxi-mobility-dashboard/database/taxi.db
-Trips analysed: 7,524,401
-Dates analysed: 31
-Busiest hour: 18:00 (505,201 pickups)
-Quietest hour: 4:00 (59,184 pickups)
-Busiest weekday by total: Thursday(1,327,275 pickups)
-Generated all five demand CSV files successfully.
