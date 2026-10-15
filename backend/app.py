@@ -1,3 +1,4 @@
+import json
 import os
 import sqlite3
 from functools import lru_cache
@@ -189,7 +190,7 @@ def trips():
 
     # Filter by pickup date range.
     start_date = request.args.get("start_date")
-    end_date = request.args.get("")
+    end_date = request.args.get("end_date")
 
     if start_date:
         filters.append("date(pickup_datetime) >= date(?)")
@@ -201,7 +202,7 @@ def trips():
 
     #Filter by trip distance.
     min_distance = request.args.get("min_distance", type=float)
-    max_distance = request.args.get("maxi_distance", type=float)
+    max_distance = request.args.get("max_distance", type=float)
 
     if min_distance is not None:
         filters.append("trip_distance >= ?")
@@ -213,7 +214,7 @@ def trips():
 
     # Filter by fare amount.
     min_fare = request.args.get("min_fare", type=float)
-    mix_fare = request.args.get("max_fare", type=float)
+    max_fare = request.args.get("max_fare", type=float)
 
     if min_fare is not None:
         filters.append("fare_amount >= ?")
@@ -250,9 +251,16 @@ def trips():
     sort_by = request.args.get("sort_by", "date")
     sort_column = sort_columns.get(sort_by)
 
+    sort_order = request.args.get("sort_order", "desc").lower()
+
     if sort_column is None:
         return jsonify({
-            "error": "Invalid sort_order. Use asc or desc."
+            "error": "Invalid sort_by. Use asc or desc."
+        }), 400
+
+    if sort_order not in ("asc", "desc"):
+        return jsonify({
+            "error": "Invalid sort_order. Use date, distance, fare, or duration."
         }), 400
 
     # Keep each response small instead of loading millions of trips
@@ -265,7 +273,7 @@ def trips():
         }), 400
 
     if page is None or page < 1:
-        return jsonify9({
+        return jsonify({
             "error": "page must be at least 1."
         }), 400
 
@@ -299,7 +307,30 @@ def trips():
         })
     finally:
         connection.close()
-        
+
+@app.route("/api/trips/<int:trip_id>")
+def trip_detail(trip_id):
+
+    """Return details for one trip, or 404 if it does not exist."""
+    connection = connect()
+
+    try:
+        row = connection.execute(
+            "SELECT * FROM v_trip_full WHERE trip_id = ?",
+            (trip_id,)
+        ).fetchone()
+
+        if row is None:
+            return jsonify({"error": "Trip not found"}), 404
+
+        trip = dict(row)
+        trip["rate_code"] = trip.get("rate_code_id")
+
+        return jsonify(trip)
+
+    finally:
+        connection.close()
+
 @app.route("/api/summary")
 def summary():
     hourly = get_hourly()
@@ -338,6 +369,8 @@ def summary():
         "busiest_day_count": busiest_day["pickup_count"],
         "quietest_day": quietest_day["day_of_week"],
         "quietest_day_count": quietest_day["pickup_count"],
+        "avg_distance": stats.get("avg_distance"),
+        "avg_fare": stats.get("avg_fare"),
 
     })                    
 
