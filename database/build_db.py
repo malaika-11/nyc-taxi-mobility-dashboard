@@ -1,4 +1,5 @@
-import argparse, json, sqlite3
+import argparse, json, sqlite3, sys, tempfile, zipfile
+from pathlib import Path
 import pandas as pd
 import pyarrow.parquet as pq
 import shapefile 
@@ -9,13 +10,27 @@ VENDORS = {1: "Creative Mobile Technologies", 2: "Curb Mobility", 6:"Myle Techno
 RATE_CODES = {1: "Standard", 2: "JFK", 3: "Newark", 4: "Nassau/Westchester", 5: "Negotiated", 6: "Group ride", 99: "Unknown"}
 PAYMENTS = {0: "Flex Fare", 1: "Credit card", 2: "Cash", 3: "No charge", 4: "Dispute", 5: "Unknown", 6: "Voided"}
 
+HERE = Path(__file__).resolve().parent   # so the script works from any folder
+SCHEMA_FILE = HERE / "schema.sql"
+SUMMARY_FILE = HERE / "summary_tables.sql"
+
 MAX_DISTANCE_MILES = 100
 MAX_FARE_DOLLARS = 500
 MAX_SPEED_MPH = 100
 SUSPICIOUS_SPEED_MPH = 70
 
+def resolve_shapefile(path):
+    """Accept either taxi_zones.shp or the original taxi_zones.zip from the TLC."""
+    if not str(path).lower().endswith(".zip"):
+        return str(path)
+    folder = Path(tempfile.mkdtemp(prefix="taxi_zones_"))
+    with zipfile.ZipFile(path) as archive:
+        archive.extractall(folder)
+    return str(next(folder.rglob("*.shp")))
+
 def setup_zones(con, lookup_file, shp_file):
 
+    con.executescript(SCHEMA_FILE.read_text(encoding="utf-8"))
     con.executescript(open("schema.sql").read())
     con.executemany(" INSERT OR IGNORE INTO vendor VALUES (?, ?)", VENDORS.items())
     con.executemany(" INSERT OR IGNORE INTO rate_code VALUES (?, ?)", RATE_CODES.items())
@@ -35,6 +50,8 @@ def setup_zones(con, lookup_file, shp_file):
 
     for z in zones.itertuples(): 
         con.execute("INSERT OR REPLACE INTO zone values (?, ?, ?, ?)", (z.location_id, z.zone, borough_id[z.borough], service_id [z.service_zone]))
+
+    shp_file = resolve_shapefile(shp_file)
 
     converter = Transformer.from_crs("EPSG:2263", "EPSG:4326", always_xy=True)
     con.execute("DELETE FROM zone_geometry")
@@ -149,21 +166,51 @@ def load_trips(con, trip_file, start, end):
         con.commit()
         print ("loaded", len(df), "trips, excluded", len(log), ", flagged", len(odd))
 
+def build_summaries(con):
+    """(Re)create the indexes and the pre-aggregated tables the dashboard reads."""
+    con.executescript(SCHEMA_FILE.read_text(encoding="utf-8"))   # idempotent
+    con.executescript(SUMMARY_FILE.read_text(encoding="utf-8"))
+    con.execute("ANALYZE")
+    con.commit()
+    print("summary tables built")
 
-parser = argparse.ArgumentParser()
-parser.add_argument("--db", default="taxi.db")
-parser.add_argument("--init", action="store_true", help="create tables and load zones")
-parser.add_argument("--lookup", help="taxi_zone_lookup.csv")
-parser.add_argument("--shp", help="taxi_zones.shp")
-parser.add_argument("--trips", help= "yellow trip file(.csv or. parquet)")
-parser.add_argument("--start", default="2000-01-01" , help="keep trips from this date")
-parser.add_argument("--end", default="2100-01-01", help="keep trips before this date")
-args = parser.parse_args()
 
-connection = sqlite3.connect(args.db)
-connection.execute("PRAGMA foreign_keys = ON")
-if args.init:
-    setup_zones(connection, args.lookup, args.shp)
-if args.trips:
-    load_trips(connection, args.trips, args.start, args.end) 
-connection.close() 
+
+def main():
+    parser = argparse.ArgumentParser(description="Build the NYC taxi SQLite database.")
+    parser.add_argument("--db", default=str(HERE / "taxi.db"), help="output database file")
+    parser.add_argument("--init", action="store_true", help="create tables and load zones")
+    parser.add_argument("--lookup", help="taxi_zone_lookup.csv")
+    parser.add_argument("--shp", help="taxi_zones.shp (or the taxi_zones.zip)")
+    parser.add_argument("--trips", help="yellow trip file (.csv or .parquet)")
+    parser.add_argument("--start", default="2000-01-01", help="keep trips from this date")
+    parser.add_argument("--end", default="2100-01-01", help="keep trips before this date")
+    parser.add_argument("--append", action="store_true", help="allow loading into a database that already has trips")
+    parser.add_argument("--summary", action="store_true", help="build indexes and summary tables")
+    args = parser.parse_args()
+
+
+
+    if args.init and (not args.lookup or not args.shp):
+        parser.error("--init needs --lookup and --shp")
+
+    connection = sqlite3.connect(args.db)
+    connection.execute("PRAGMA foreign_keys = ON")
+    if args.init:
+        setup_zones(connection, args.lookup, args.shp)
+    if args.trips:
+        has_zones = connection.execute(
+            "SELECT name FROM sqlite_master WHERE name = 'zone'").fetchone()
+        if not has_zones:
+            sys.exit("No tables yet. Run once with --init --lookup ... --shp ... first.")
+        existing = connection.execute("SELECT COUNT(*) FROM trip").fetchone()[0]
+        if existing and not args.append:
+            sys.exit(f"{args.db} already contains {existing:,} trips. Delete the file "
+                     "to rebuild from scratch, or pass --append to add more.")
+        load_trips(connection, args.trips, args.start, args.end)
+    if args.summary:
+        build_summaries(connection)
+    connection.close()
+
+if __name__ == "__main__":
+    main()

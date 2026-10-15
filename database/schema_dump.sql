@@ -1,3 +1,4 @@
+-- Schema dump of database/taxi.db (structure only; no trip rows).
 CREATE TABLE borough (
     borough_id INTEGER PRIMARY KEY AUTOINCREMENT,
     name       TEXT NOT NULL UNIQUE 
@@ -7,6 +8,7 @@ CREATE TABLE service_zone (
     service_zone_id INTEGER PRIMARY KEY AUTOINCREMENT,
     name            TEXT NOT NULL UNIQUE 
 );
+
 CREATE TABLE zone (
     location_id INTEGER PRIMARY KEY,
     zone_name   TEXT NOT NULL,
@@ -14,6 +16,7 @@ CREATE TABLE zone (
     service_zone_id INTEGER NOT NULL REFERENCES service_zone(service_zone_id)
 
 );
+
 CREATE TABLE zone_geometry (
     geometry_id INTEGER PRIMARY KEY AUTOINCREMENT,
     location_id INTEGER NOT NULL REFERENCES zone(location_id),
@@ -80,24 +83,7 @@ CREATE TABLE suspicious_record(
     reason_code TEXT NOT NULL
      
 );
-CREATE INDEX idx_trip_pickup      ON trip(pickup_datetime);
-CREATE INDEX idx_trip_pu_zone     ON trip(pu_location_id);
-CREATE INDEX idx_trip_do_zone     ON trip(do_location_id);
-CREATE INDEX idx_trip_hour_dow    ON trip(pickup_dow, pickup_hour);
-CREATE INDEX idx_trip_distance    ON trip (trip_distance);
-CREATE INDEX idx_trip_payment     ON trip(payment_type_id);
-CREATE INDEX idx_fare_total       ON trip_fare(total_amount);
-CREATE VIEW v_trip_full AS
-SELECT t.*, f.fare_amount, f.tip_amount, f.total_amount, f.fare_per_mile, f.tip_pct, pz.zone_name AS pu_zone, pb.name AS pu_borough, dz.zone_name AS do_zone, db.name AS do_borough, p.description AS payment_type
 
-FROM trip t
-JOIN trip_fare f     ON f.trip_id = t.trip_id
-JOIN zone pz         ON pz.location_id = t.pu_location_id
-JOIN borough pb      ON pb.borough_id = pz.borough_id
-JOIN zone dz         ON dz.location_id = t.do_location_id
-JOIN borough db      ON db.borough_id = dz.borough_id
-JOIN payment_type p  ON p.payment_type_id = t.payment_type_id
-/* v_trip_full(trip_id,vendor_id,pickup_datetime,dropoff_datetime,pu_location_id,do_location_id,rate_code_id,payment_type_id,passenger_count,trip_distance,store_and_fwd,duration_min,avg_speed_mph,pickup_hour,pickup_dow,fare_amount,tip_amount,total_amount,fare_per_mile,tip_pct,pu_zone,pu_borough,do_zone,do_borough,payment_type) */;
 CREATE TABLE hourly_demand(hour INT,pickup_count);
 CREATE TABLE weekday_demand(
   day_of_week,
@@ -111,3 +97,37 @@ CREATE TABLE weekday_average(
   average_pickups
 );
 CREATE TABLE period_demand(period,pickup_count);
+CREATE TABLE trip_stats(
+  trip_count,
+  avg_distance,
+  avg_fare
+);
+
+CREATE INDEX idx_trip_pickup      ON trip(pickup_datetime);
+
+CREATE INDEX idx_trip_pu_zone     ON trip(pu_location_id);
+
+CREATE INDEX idx_trip_do_zone     ON trip(do_location_id);
+
+CREATE INDEX idx_trip_hour_dow    ON trip(pickup_dow, pickup_hour);
+
+CREATE INDEX idx_trip_distance    ON trip (trip_distance);
+
+CREATE INDEX idx_trip_payment     ON trip(payment_type_id);
+
+CREATE INDEX idx_fare_total       ON trip_fare(total_amount);
+
+CREATE INDEX idx_fare_amount      ON trip_fare(fare_amount);
+
+CREATE INDEX idx_trip_duration    ON trip(duration_min);
+
+CREATE VIEW v_trip_full AS
+SELECT t.*, f.fare_amount, f.tip_amount, f.total_amount, f.fare_per_mile, f.tip_pct, pz.zone_name AS pu_zone, pb.name AS pu_borough, dz.zone_name AS do_zone, db.name AS do_borough, p.description AS payment_type
+
+FROM trip t
+JOIN trip_fare f     ON f.trip_id = t.trip_id
+JOIN zone pz         ON pz.location_id = t.pu_location_id
+JOIN borough pb      ON pb.borough_id = pz.borough_id
+JOIN zone dz         ON dz.location_id = t.do_location_id
+JOIN borough db      ON db.borough_id = dz.borough_id
+JOIN payment_type p  ON p.payment_type_id = t.payment_type_id;

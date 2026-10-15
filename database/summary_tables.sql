@@ -3,6 +3,7 @@ DROP TABLE IF EXISTS weekday_demand;
 DROP TABLE IF EXISTS daily_demand;
 DROP TABLE IF EXISTS weekday_average;
 DROP TABLE IF EXISTS period_demand;
+DROP TABLE IF EXISTS trip_stats;
 
 CREATE TABLE hourly_demand AS
 SELECT pickup_hour AS hour, COUNT(*) AS pickup_count
@@ -23,3 +24,8 @@ JOIN (SELECT CASE strftime('%w', date) WHEN '1' THEN 'Monday' WHEN '2' THEN 'Tue
 CREATE TABLE period_demand AS
 SELECT CASE WHEN pickup_dow >= 5 THEN 'Weekend' ELSE 'Weekday' END AS period, COUNT(*) AS pickup_count FROM trip GROUP BY 1;
 
+CREATE TABLE trip_stats AS
+SELECT COUNT(*) AS trip_count,
+       ROUND(AVG(t.trip_distance), 2) AS avg_distance,
+       ROUND(AVG(f.fare_amount), 2)   AS avg_fare
+FROM trip t JOIN trip_fare f ON f.trip_id = t.trip_id;
