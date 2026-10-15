@@ -344,6 +344,7 @@ def summary():
 @app.after_request
 def allow_cross_origin(response):
     response.headers["Access-Control-Allow-Origin"] = "*"
+    return response
 
 @app.errorhandler(FileNotFoundError)
 def handle_missing_data(error):
