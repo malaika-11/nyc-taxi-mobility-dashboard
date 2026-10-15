@@ -27,11 +27,10 @@ export async function getJSON(path, params = {} ) {
     }
 }
 
-export const getHealth         =()        => getJSON("/api/health");
-export const getSummary        =()        => getJSON("/api/summary");
 export const getHourlyDemand   =()        => getJSON("/api/hourly-demand");
-export const getWeekdayAvg     =()        => getJSON("/api/weekly-average");
+export const getWeekdayDemand    =()        => getJSON("/api/weekday-demand");
+export const getWeekdayAverage   =()        => getJSON("api/weekday-average")
+export const getWeekdayWeekendDemand    =()        => getJSON("/api/weekday-weekend-demand");
 export const getDailyDemand    =()        => getJSON("/api/daily-demand");
-export const getZones          =()        => getJSON("api/zones");
-export const getTrips          =(filters) => getJSON("/api/trips", filters);
-export const getTripDetail     =(id)      => getJSON('/api/trips/${id}');
+export const getDemandSummary      =()        => getJSON("api/demand-summary");
+
