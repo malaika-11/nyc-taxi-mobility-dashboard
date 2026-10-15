@@ -1,4 +1,4 @@
-export const API_BASE = "http://127.0.0.1:5500"
+export const API_BASE = "http://127.0.0.1:5000"
 export function buildQuery (params = {}) {
     const query = new URLSearchParams()
     for  (const[key, value] of Object.entries(params)) {
@@ -13,7 +13,7 @@ export function buildQuery (params = {}) {
 export async function getJSON(path, params = {} ) {
     let response;
     try {
-        response = await fetch('${API_BASE}${path}${buildQuery(params)}')
+        response = await fetch(`${API_BASE}${path}${buildQuery(params)}`);
     } catch (networkError) {
         throw new Error("Cannot reach the server. Is the backend running?")
     }
