@@ -5,7 +5,7 @@ SQLite database, serves it through a Flask API, and shows it on a web dashboard.
 
 •⁠  ⁠*Video walkthrough:* <<VIDEO LINK HERE>>
 •⁠  ⁠*GitHub repository:* <<https://github.com/malaika-11/nyc-taxi-mobility-dashboard.git>>
-   *Team Task Sheet:* <<https://docs.google.com/spreadsheets/d/1TfQLnFrukclGGabRTPRnTWjI8un_2a0tNHR69zOttl0/edit?usp=sharing>>
+.  *Team Task Sheet:* <<https://docs.google.com/spreadsheets/d/1TfQLnFrukclGGabRTPRnTWjI8un_2a0tNHR69zOttl0/edit?usp=sharing>>
 
 ## 1. What the system does
 
