@@ -6,7 +6,7 @@
     <title>NYC Taxi Mobility Dashboard</title>
     <link rel="stylesheet" href="css/style.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
-    <script src="js/dashboard.js" defer></script>
+    <script type= "mdoule" src="js/dashboard.js" defer></script>
     <script src="js/charts.js" defer></script>
 </head>
 <body>
@@ -27,7 +27,7 @@
 
     <section id="filters" class="filters" aria-label="Filters">
     <h2>Filter Trips</h2>
-    <div class="filter grid">
+    <div class="filter-grid">
     <label>From date <input type="date" id="filter-from-date"></label>
     <label>To date<input type="date" id="filter-to-date"></label>
 
@@ -44,13 +44,13 @@
     <label> Dropoff Borough
      <select id="filter-do-borough"><option value="">All</option></select>
      </label>
-    
     <label> Sort by
      <select id="filter-sort">
-       <option value="pickup_datetime">Date</option>
-       <option value="trip distance">Distance</option>
-       <option value="total amount">Fare</option>
-     </select>
+       <option value="date">Date</option>
+       <option value="distance">Distance</option>
+       <option value="fare">Fare</option>
+       <option value="duration">Duration</option>
+    </select>
     </label>
     <label>Order
         <select id="sort by">
@@ -72,10 +72,10 @@
             <canvas id="chart-hourly"></canvas>
         </article>
         <article class="chart-card">
-            <h2>Average trips by weekday</h2>
+            <h2>Average tripsper day, by weekday</h2>
             <canvas id="chart-weekday"></canvas>
         </article>
-        <article class="chart-card">
+        <article class="chart-card wide">
             <h2>Daily trip volume</h2>
             <canvas id="chart-daily"></canvas> 
         </article>
@@ -87,7 +87,7 @@
     </section>
 
     <section id="trips" class="trips" aria-label="Trips">
-        <h2>Trips</h2>
+        <h2>Trips <small>(click a row for details)</small></h2>
         <div class="table-wrap">
             <table>
                 <thead>
@@ -96,6 +96,7 @@
                         <th>Pickup Zone</th>
                         <th>Dropoff Zone</th>
                         <th>Distance(mi)</th>
+                        <th>Fare($)</th>
                         <th>Total ($)</th>
                     </tr>
                 </thead>
