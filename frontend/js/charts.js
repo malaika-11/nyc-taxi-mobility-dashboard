@@ -4,7 +4,16 @@ const charts = {};
 
 export const hourLabel = hour => '${String(hour).padStart(2, "0")}:00';
 
-function drawChart(canvasId, type, labels, values, label, xTitle, yTitle) {
+function pick(row, keys, fallback = undefined) {
+    for (const key of keys) {
+        if (row[key] !== undefined && row[key] !== null) return row[key]; 
+    }
+    return fallback;
+}
+
+const hourlabel = hour => `${String(hour).padStart(2, "0")}:00`;
+
+function createDemandChart(canvasId, type, labels, values, label, xTitle) {
     const canvas = document.getElementById(canvasId);
     if (!canvas) throw new Error('Chart canvas not found: ${canvasId}');
    if (typeof Chart === "undefined") throw new Error("Chart.js did not load. Check your internet connection.");
@@ -51,7 +60,11 @@ function drawChart(canvasId, type, labels, values, label, xTitle, yTitle) {
 }
 
 export function renderHourlyChart(rows) {
-const sorted = [...rows].sort(a, b) = 
+const sorted = [...rows].sort((a, b) =>
+    Number(pick(a, FIELDS.hourly.label, 0)) -
+    Number(pick(b, FIELDS.hourly.label, 0))
+);
+
 Number(pick(a, FIELDS.hourly.label, 0)) - Number(pick(b, FIELDS.hourly.label, 0));
 createDemandChart(
     "chat-hourly", "bar",
@@ -82,7 +95,20 @@ export function normalizeWeekdayRows(rows) {
     return normalized;
 }
 
-export function rederDailyChart(rows) {
+export function renderWeekdayChart(rows) {
+    const normalized = normalizeWeekdayRows(rows);
+
+    createDemandChart(
+        "chart-weekday",
+        "bar",
+        normalized.map(row => row.dayName),
+        normalized.map(row => row.value),
+        "Average daily taxi pickups",
+        "Day of week"
+    );
+}
+
+export function renderDailyChart(rows) {
     const sorted = [...rows].sort((a, b) =>
       String(pick(a, FIELDS.daily.label, "")).localeCompare(String(pick(b, FIELDS.daily.label, ""))));
     createDemandChart(

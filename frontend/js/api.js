@@ -29,6 +29,10 @@ export async function getJSON(path, params = {}) {
     }
 }
 
+
+export const getHealth = () => getJSON("/api/health");
+export const getSummary = () => getJSON("/api/summary");
+export const getHourlyDemand = () => getJSON("/api/hourly-demand");
 export const getWeekdayAverage = () => getJSON("/api/weekday-average");
 export const getWeekdayWeekendDemand = () => getJSON("/api/weekday-weekend-demand");
 export const getDailyDemand = () => getJSON("/api/daily-demand");
