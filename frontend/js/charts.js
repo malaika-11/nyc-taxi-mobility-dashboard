@@ -1,16 +1,8 @@
-const WEEKDAYS = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
 const COLORS = { accent: "#f5b301", accentSoft: "rgba(245, 179, 1, 0.25)", navy: "#14213d" };
 
-export const FIELDS = {
-    hourly: { label: ["hour", "pickup_hour"],
-        value: ["pickups", "count", "total_pickups", "trips", "trip_count" ] },
-    weekday: { label: ["weekday", "day", "day_name", "pickup_dow", "day_of_week", "dow"],
-        value: ["average_daily_pickups", "average_pickups", "avg_pickups", "pickups", "total_pickups", "count", "trips"] },
-    daily: { label: ["date", "pickup_date", "day"],
-        value: ["pickups", "count", "total_pickups", "trips", "trip_count"] },
-    };
+const charts = {};  
 
-const demandCharts = {}
+export const hourLabel = hour => '${String(hour).padStart(2, "0")}:00';
 
 function pick(row, keys, fallback = undefined) {
     for (const key of keys) {
@@ -24,35 +16,36 @@ const hourlabel = hour => `${String(hour).padStart(2, "0")}:00`;
 function createDemandChart(canvasId, type, labels, values, label, xTitle) {
     const canvas = document.getElementById(canvasId);
     if (!canvas) throw new Error('Chart canvas not found: ${canvasId}');
-    if (typeof Chart === "undefined") throw new Error("Chart.js did not load. Check your connection.");
-    if(values.some(v=>! Number.isFinite(v))) {
-        throw new Error('Unexpected data format for ${canvasId} (see console)');
-    }
-    if (DemandCharts[canvasId]) demandCharts[canvasId].destroy();
-    const isline = type === "line";
-    DemandCharts[canvasId] = new Chart(canvas, {
+   if (typeof Chart === "undefined") throw new Error("Chart.js did not load. Check your internet connection.");
+   if (values.some(v => !Number.isFinite(v))) {
+    throw new Error('Unexpected data format for ${canvasId} (see console)');
+   } 
+    if (charts[canvasId]) charts[canvasId].destroy();
+
+    const isLine = type === "line";
+    charts[canvasId] = new Chart(canvas,{  
         type,
         data: {
             labels,
             datasets: [{
                 label,
                 data: values,
-                backgroundColor: isline ? COLORS.accentSoft : COLORS.accent,
-                borderCOLOR: isline ? COLORS.navy : COLORS.accent,
-                borderWidth: isline ? 2 : 0,
-                borderRadius: isline ? 0 : 4,
+                backgroundColor: isLine ? COLORS.accentSoft : COLORS.accent,
+                borderCOLOR: isLine ? COLORS.navy : COLORS.accent,
+                borderWidth: isLine ? 2 : 0,
+                borderRadius: isLine ? 0 : 4,
                 tension: 0.3,
-                fill: isline,
-                pointRadius: isline ? 2 : 0,
+                fill: isLine,
+                pointRadius: isLine ? 2 : 0,
             }],
         },
-    options: {
+        options: {
         responsive: true,
         aspectRatio: canvasId === "chart-daily" ? 3 : 1.6,
         interaction: { intersect: false, mode: "index" },
         plugins: {
             legend: { display: true, position: "top" },
-            tooltip: { enabled :true },
+            tooltip: { enabled: true },
         },
     scales: {
         x: { title: { display: true, ext: xTitle } },
