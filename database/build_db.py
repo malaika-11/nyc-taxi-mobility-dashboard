@@ -31,7 +31,6 @@ def resolve_shapefile(path):
 def setup_zones(con, lookup_file, shp_file):
 
     con.executescript(SCHEMA_FILE.read_text(encoding="utf-8"))
-    con.executescript(open("schema.sql").read())
     con.executemany(" INSERT OR IGNORE INTO vendor VALUES (?, ?)", VENDORS.items())
     con.executemany(" INSERT OR IGNORE INTO rate_code VALUES (?, ?)", RATE_CODES.items())
     con.executemany(" INSERT OR IGNORE INTO payment_type VALUES (?, ?)", PAYMENTS.items())
