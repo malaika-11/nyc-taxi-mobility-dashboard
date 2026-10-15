@@ -2,7 +2,7 @@ import sqlite3
 from functools import lru_cache
 from pathlib import Path
 
-from flask import Flask, jsonify, send_from_directory
+from flask import Flask, jsonify, request, send_from_directory
 
 ROOT = Path(__file__).resolve().parents[1]
 FRONTEND_DIR = ROOT / "frontend"
@@ -145,6 +145,126 @@ def weekday_weekend_demand():
 def daily_demand():
     return jsonify(get_daily())
 
+@app.route("/api/trips")
+def trips():
+    """Return filtered taxi trips with pagination and sorting"""
+
+    filters = []
+    params = []
+
+    # Filter by pickup date range.
+    start_date = request.args.get("start_date")
+    end_date = request.args.get("")
+
+    if start_date:
+        filters.append("date(pickup_datetime) >= date(?)")
+        params.append(start_date)
+
+    if end_date:
+        filters.append("date(pickup_datetime) <= date(?)" )
+        params.append(end_date)
+
+    #Filter by trip distance.
+    min_distance = request.args.get("min_distance", type=float)
+    max_distance = request.args.get("maxi_distance", type=float)
+
+    if min_distance is not None:
+        filters.append("trip_distance >= ?")
+        params.append(min_distance)
+
+    if max_distance is not None:
+        filters.append("trip_distance  <= ?")
+        params.append(max_distance)
+
+    # Filter by fare amount.
+    min_fare = request.args.get("min_fare", type=float)
+    mix_fare = request.args.get("max_fare", type=float)
+
+    if min_fare is not None:
+        filters.append("fare_amount >= ?")
+        params.append(min_fare)
+
+    if max_fare is not None:
+        filters.append("fare_amount <= ?")
+        params.append(max_fare)
+
+    # Filter by pickup and drop-off borough.
+    pickup_borough = request.args.get("pickup_borough")
+    dropoff_borough = request.args.get("dropoff_borough")
+
+    if pickup_borough:
+        filters.append("pu_borough = ?")
+        params.append(pickup_borough)
+
+    if dropoff_borough:
+        filters.append("do_borough = ?")
+        params.append(dropoff_borough)
+
+    where_clause = (
+        " WHERE " + " AND ".join(filters) if filters else ""
+    )
+
+    # Allow only approved sorting columns.
+    sort_columns = {
+        "date": "pickup_datetime",
+        "distance": "trip_distance",
+        "fare": "fare_amount",
+        "duration": "duration_min",
+    }
+
+    sort_by = request.args.get("sort_by", "date")
+    sort_column = sort_columns.get(sort_by)
+
+    if sort_column is None:
+        return jsonify({
+            "error": "Invalid sort_order. Use asc or desc."
+        }), 400
+
+    # Keep each response small instead of loading millions of trips
+    limit = request.args.get("limit", default=50, type=int)
+    page = request.args.get("page", default=1, type=int)
+
+    if limit is None or limit < 1 or limit > 100:
+        return jsonify({
+            "error": "limit must be between 1 and 100."
+        }), 400
+
+    if page is None or page < 1:
+        return jsonify9({
+            "error": "page must be at least 1."
+        }), 400
+
+    offset = (page - 1) * limit
+
+    connection = connect()
+
+    try:
+        count_sql = (
+            "SELECT COUNT(*) AS total FROM v_trip_full" + where_clause
+        )
+        total = connection.execute(count_sql, params).fetchone()["total"]
+
+        data_sql = (
+            "SELECT * FROM v_trip_full"
+            + where_clause
+            + f" ORDER BY {sort_column} {sort_order.upper()}"
+            + " LIMIT ? OFFSET ?"
+        )
+
+        rows = connection.execute(
+            data_sql, params + [limit, offset]
+        ).fetchall()
+
+        return jsonify({
+            "data": [dict(row) for row in rows],
+            "total": total,
+            "page": page,
+            "limit": limit,
+            "total_pages": (total + limit - 1) // limit,
+        })
+    finally:
+        connection.close()
+        
 @app.route("/api/summary")
 def summary():
     hourly = get_hourly()
