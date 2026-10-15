@@ -2,7 +2,7 @@
 
 ## 1. Purpose
 
-The purpose of this algorithm is to identify when taxi demand is highest and lowest in New York City.It analyzes taxi pickup timestamps to calculate demand by hour, day of the week, weekday versus weekend, and calendar date.
+The purpose of this algorithm is to identify when taxi demand is highest and lowest in New York City. It analyzes taxi pickup timestamps to calculate demand by hour, day of the week, weekday versus weekend, and calendar date.
 
 ## 2. Algorithm
 
@@ -10,7 +10,7 @@ The purpose of this algorithm is to identify when taxi demand is highest and low
 2. Select the pickup timestamp from each chunk.
 3. Convert pickup timestamps into datetime values.
 4. Exclude invalid timestamps and pickups outside January 2019.
-5. Extracy the pickup hour, weekday, and calendar date.
+5. Extract the pickup hour, weekday, and calendar date.
 6. Count pickups for each hour , weekday , date , and weekday/weekend period.
 7. Write the aggregated results to CSV files.
 8. Use the results to identify demand patterns.
@@ -40,7 +40,7 @@ END
 
 - Dictionaries store pickup counts for each hour, weekday, date, and period.
 - Chunked reading limits how much raw data must be processed in memory at once.
-- CSV files store the aggregated results for further analysis and visualization
+- CSV files store the aggregated results for further analysis and visualization.
 
 ## 5. Time Complexity
 
@@ -50,13 +50,13 @@ Each record is processed once. Therefore, the main counting operation takes O(n)
 
 The script also writes a small number of summary rows. Sorting daily dates, if performed, takes O(d log d),where d is the number of distinct dates.
 
-Overall, the time complexity id O(n + d log d).
+Overall, the time complexity is O(n + d log d).
 
 ## 6. Space Complexity
 
 The script processes the raw dataset in chunks rather than loading the entire dataset into memory.
 
-The counters store summaries rather than individual trips. If c is the chunk size and d is the number of distinct dates, the working space is approximately O(c + d)
+The counters store summaries rather than individual trips. If c is the chunk size and d is the number of distinct dates, the working space is approximately O(c + d).
 
 ## 7. Limitations
 
