@@ -1,6 +1,6 @@
 import { getHealth, getSummary, getHourlyDemand, getWeekdayAverage, getDailyDemand, getBoroughs, getTrips, getTripDetail,} from "./api.js";
 
-import { renderHourlyChart, renderWeekdayChart, renderDailyChart,normalizeWeekdayRows, FIELDS,} from "./charts.js";
+import { renderHourlyChart, renderWeekdayChart, renderDailyChart,normalizeWeekdayRows, hourLabel, FIELDS,} from "./charts.js";
 
 const PAGE_SIZE = 25;
 const state = { page: 1, totalPages: 1 };

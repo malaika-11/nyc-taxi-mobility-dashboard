@@ -254,13 +254,12 @@ def trips():
     sort_order = request.args.get("sort_order", "desc").lower()
 
     if sort_column is None:
-        return jsonify({
-            "error": "Invalid sort_by. Use asc or desc."
+        return jsonify({"error": "Invalid sort_by. Use date, distance, fare, or duration."
         }), 400
 
     if sort_order not in ("asc", "desc"):
         return jsonify({
-            "error": "Invalid sort_order. Use date, distance, fare, or duration."
+            "error": "Invalid sort_order. Use asc or desc."
         }), 400
 
     # Keep each response small instead of loading millions of trips
