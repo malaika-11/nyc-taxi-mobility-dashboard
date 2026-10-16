@@ -8,6 +8,7 @@ A full-stack dashboard for exploring New York City yellow taxi trips (January 20
 | **GitHub repository** | https://github.com/malaika-11/nyc-taxi-mobility-dashboard |
 | **Team participation sheet** | https://docs.google.com/spreadsheets/d/1TfQLnFrukclGGabRTPRnTWjI8un_2a0tNHR69zOttl0/edit?usp=sharing |
 | **Technical report (PDF)** | [`docs/SME_Inc_Technical_Report.pdf`](docs/SME_Inc_Technical_Report.pdf) |
+| **Deliverables** | [`zip](docs/SME_Inc_Technical_Report.pdf) |
 
 ---
 
