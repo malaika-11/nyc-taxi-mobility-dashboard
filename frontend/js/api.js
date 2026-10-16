@@ -39,5 +39,6 @@ export const getDailyDemand = () => getJSON("/api/daily-demand");
 export const getBoroughs = () => getJSON("/api/boroughs");
 export const getTrips = (params) => getJSON("/api/trips", params);
 export const getTripDetail = (id) => getJSON(`/api/trips/${id}`);
-
+export const getZoneDemand = () => getJSON("/api/zone-demand");
+export const getTopZones = () => getJSON("/api/zones/top", params);
 

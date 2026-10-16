@@ -181,3 +181,22 @@ tbody tr:hover { background: #fff7de; }
 .trip-detail dl { display: grid; grid-template-columns: 9rem 1fr; gap: 0.4rem 0.75rem; margin: 0; }
 .trip-detail dt { color: var(--muted); font-size: 0.85rem; }
 .trip-detail dd { margin: 0; font-weight: 600; word-break: break-word; } 
+
+.map-section { margin-top: var(--gap); }
+.map-layout { display: grid; grid-template-columns: 2fr 1fr; gap: var(--gap); }
+.map-control { display: flex; flex-direction: column; gap: 0.25rem; font-size: 0.85rem; color: var(--muted); margin-bottom: 0.5rem; }
+.zone-map { height: 520px; border-radius: var(--radius); border: 1px solid var(--border); }
+.map-status { color: var(--muted); font-size: 0.9rem; margin: 0 0 0.5rem; }
+.map-legend { background: #fff; padding: 0.5rem 0.75rem; border-radius: 6px; box-shadow: 0 1px 4px rgba(0,0,0,0.25); font-size: 0.8rem; line-height: 1.4; }
+.map-legend i { display: inline-block; width: 14px; height: 14px; margin-right: 6px; vertical-align: middle; border: 1px solid rgba(0,0,0,0.15); }
+.ranking-panel { background: #f7f9fc; border: 1px solid var(--border); border-radius: var(--radius); padding: 0.75rem 1rem; }
+.ranking-panel h3 { margin: 0 0 0.5rem; font-size: 1rem; }
+.rank-list { list-style: none; margin: 0; padding: 0; counter-reset: rank; }
+.rank-list li { position: relative; display: flex; justify-content: space-between; gap: 0.5rem; padding: 0.4rem 0.5rem 0.55rem 1.6rem; font-size: 0.85rem; counter-increment: rank; border-bottom: 1px solid var(--border); }
+.rank-list li::before { content: counter(rank); position: absolute; left: 0.3rem; color: var(--muted); font-weight: 600; }
+.rank-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.rank-value { font-weight: 700; white-space: nowrap; }
+.rank-bar { position: absolute; left: 1.6rem; bottom: 0.15rem; height: 3px; max-width: calc(100% - 2.1rem); background: var(--accent, #f5b301); border-radius: 2px; }
+.rank-note { color: var(--muted); font-size: 0.75rem; margin: 0.6rem 0 0; }
+@media (max-width: 900px) { .map-layout { grid-template-columns: 1fr; } .zone-map { height: 380px; } }
+ 

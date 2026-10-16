@@ -6,6 +6,11 @@ from pathlib import Path
 
 from flask import Flask, jsonify, request, send_from_directory
 
+try:                                   # works for `python backend/app.py` and for tests
+    from algorithms import top_k
+except ImportError:
+    from backend.algorithms import top_k
+    
 ROOT = Path(__file__).resolve().parents[1]
 FRONTEND_DIR = ROOT / "frontend"
 
@@ -373,6 +378,101 @@ def summary():
 
     })                    
 
+ZONE_METRICS = {
+    "pickup_count": "pickups",
+    "dropoff_count": "drop-offs",
+    "avg_fare": "average fare ($)",
+}
+MIN_TRIPS_FOR_AVG_FARE = 100   # ignore zones with too few trips for a fair average
+ 
+ 
+def get_zone_stats():
+    """One row per zone: pickups, drop-offs and average fare for trips starting there."""
+    return demand_rows(
+        "zone_stats",
+        "SELECT location_id, zone, borough, pickup_count, dropoff_count, avg_fare FROM zone_stats",
+        """SELECT z.location_id, z.zone_name AS zone, b.name AS borough,
+                  COALESCE(p.n, 0) AS pickup_count,
+                  COALESCE(d.n, 0) AS dropoff_count,
+                  p.avg_fare AS avg_fare
+           FROM zone z
+           JOIN borough b ON b.borough_id = z.borough_id
+           LEFT JOIN (SELECT t.pu_location_id AS id, COUNT(*) AS n,
+                             ROUND(AVG(f.fare_amount), 2) AS avg_fare
+                      FROM trip t JOIN trip_fare f ON f.trip_id = t.trip_id
+                      GROUP BY t.pu_location_id) p ON p.id = z.location_id
+           LEFT JOIN (SELECT do_location_id AS id, COUNT(*) AS n
+                      FROM trip GROUP BY do_location_id) d ON d.id = z.location_id""",
+    )
+ 
+ 
+@lru_cache(maxsize=1)
+def get_zone_shapes():
+    """location_id -> GeoJSON geometry. A zone with several polygons becomes a MultiPolygon."""
+    rows = query_database("SELECT location_id, geojson FROM zone_geometry ORDER BY location_id, geometry_id")
+    polygons = {}
+    for row in rows:
+        polygons.setdefault(row["location_id"], []).append(json.loads(row["geojson"])["coordinates"])
+    shapes = {}
+    for location_id, parts in polygons.items():
+        if len(parts) == 1:
+            shapes[location_id] = {"type": "Polygon", "coordinates": parts[0]}
+        else:
+            shapes[location_id] = {"type": "MultiPolygon", "coordinates": parts}
+    return shapes
+ 
+ 
+@app.route("/api/zone-demand")
+def zone_demand():
+    """GeoJSON FeatureCollection for the choropleth map."""
+    shapes = get_zone_shapes()
+    features = []
+    for row in get_zone_stats():
+        geometry = shapes.get(row["location_id"])
+        if geometry is None:
+            continue
+        features.append({
+            "type": "Feature",
+            "geometry": geometry,
+            "properties": {
+                "location_id": row["location_id"],
+                "zone": row["zone"],
+                "borough": row["borough"],
+                "pickup_count": row["pickup_count"],
+                "dropoff_count": row["dropoff_count"],
+                "avg_fare": row["avg_fare"],
+            },
+        })
+    return jsonify({"type": "FeatureCollection", "features": features})
+ 
+ 
+@app.route("/api/zones/top")
+def zones_top():
+    """Top-K zones by a metric, ranked with the hand-written heap in algorithms.py."""
+    metric = request.args.get("metric", "pickup_count")
+    if metric not in ZONE_METRICS:
+        return jsonify({"error": "Invalid metric. Use pickup_count, dropoff_count or avg_fare."}), 400
+ 
+    k = request.args.get("k", default=10, type=int)
+    if k is None or k < 1 or k > 50:
+        return jsonify({"error": "k must be between 1 and 50."}), 400
+ 
+    rows = get_zone_stats()
+    if metric == "avg_fare":
+        rows = [r for r in rows if (r["pickup_count"] or 0) >= MIN_TRIPS_FOR_AVG_FARE]
+ 
+    best = top_k(rows, k, metric, tie_key="location_id")
+    return jsonify({
+        "metric": metric,
+        "label": ZONE_METRICS[metric],
+        "k": k,
+        "data": [
+            {"rank": i + 1, "location_id": r["location_id"], "zone": r["zone"],
+             "borough": r["borough"], "value": r[metric]}
+            for i, r in enumerate(best)
+        ],
+    })
+ 
 @app.after_request
 def allow_cross_origin(response):
     response.headers["Access-Control-Allow-Origin"] = "*"

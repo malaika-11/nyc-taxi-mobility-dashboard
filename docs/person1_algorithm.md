@@ -1,66 +1,96 @@
-# Person 1: Taxi Demand Analysis Algorithm
+# Hand-written algorithm: top-K zones with a binary min-heap
 
-## 1. Purpose
+Code: `backend/algorithms.py` (`MinHeap`, `top_k`)
+Used by: `GET /api/zones/top` and the "Top zones" ranking panel on the dashboard
+Tests: `tests/test_algorithms.py` (run `python -m unittest tests.test_algorithms`)
 
-The purpose of this algorithm is to identify when taxi demand is highest and lowest in New York City. It analyzes taxi pickup timestamps to calculate demand by hour, day of the week, weekday versus weekend, and calendar date.
+## 1. Problem
 
-## 2. Algorithm
+The dashboard must show the K busiest taxi zones by pickups, drop-offs or average fare. It will later need the K busiest origin-destination routes, which can be up to 265 x 265 = 70,225 pairs.
 
-1. Read the January 2019 yellow taxi trip dataset in chunks.
-2. Select the pickup timestamp from each chunk.
-3. Convert pickup timestamps into datetime values.
-4. Exclude invalid timestamps and pickups outside January 2019.
-5. Extract the pickup hour, weekday, and calendar date.
-6. Count pickups for each hour , weekday , date , and weekday/weekend period.
-7. Write the aggregated results to CSV files.
-8. Use the results to identify demand patterns.
+Sorting every row costs O(n log n) and builds a full sorted copy, even though only K rows are needed.
+
+## 2. Approach
+
+Keep a **min-heap of size K** that holds the K best rows seen so far. The root of a min-heap is its smallest item, so the root is always the weakest of the current best K.
+
+For each new row:
+- If the heap has fewer than K rows, push the row.
+- Otherwise compare the row with the root. If the row is better, replace the root with it and restore the heap order. If not, ignore the row.
+
+When all rows have been seen, the heap holds exactly the K best rows. They are popped smallest first and written into the result list from the back, so the final list is largest first without calling `reverse()` or `sorted()`.
+
+The heap is a flat list. For the node at index `i`: parent `(i - 1) // 2`, left child `2i + 1`, right child `2i + 2`. Order is restored by `sift_up` after a push and `sift_down` after a pop or replace.
+
+Ties are broken explicitly: on equal scores the lower `location_id` wins, so results are deterministic.
+
+No `heapq`, `sorted()`, `list.sort()`, `Counter` or pandas sorting is used.
 
 ## 3. Pseudocode
 
-BEGIN 
-     Initialize counters for hours, weekdays, dates, and periods
+```
+top_k(rows, K, key, tie_key):
+    if K <= 0: return []
+    heap = empty min-heap
+    for row in rows:
+        if row[key] is missing: continue
+        item = (row[key], row[tie_key], row)
+        if size(heap) < K:
+            push(heap, item)
+        else if item is better than root(heap):
+            replace_root(heap, item)
+    result = list of size(heap) empty slots
+    position = size(heap) - 1
+    while heap is not empty:
+        result[position] = pop(heap).row
+        position = position - 1
+    return result
 
-    FOR each chunk in the taxi dataset
-         Read pickup timestamps
-         Convert timestamps to datetime values
-    
-        FOR each valid timestamp
-            IF timestamp is in January 2019
-              Extract hour, weekday, and date
-              Increment the corresponding counters
-              Increment weekday or weekend counter
-            END IF
-        END FOR
-    END FOR
+push(heap, item):
+    append item to the end
+    sift_up(last index)
 
-    Write demand summaries to CSV files
-END
+pop(heap):
+    smallest = heap[0]
+    move the last item to index 0
+    sift_down(0)
+    return smallest
 
-## 4. Data Structures
+sift_up(i):
+    while i > 0 and heap[i] is smaller than heap[parent(i)]:
+        swap heap[i] and heap[parent(i)]
+        i = parent(i)
 
-- Dictionaries store pickup counts for each hour, weekday, date, and period.
-- Chunked reading limits how much raw data must be processed in memory at once.
-- CSV files store the aggregated results for further analysis and visualization.
+sift_down(i):
+    loop:
+        m = i
+        if left(i)  exists and heap[left(i)]  is smaller than heap[m]: m = left(i)
+        if right(i) exists and heap[right(i)] is smaller than heap[m]: m = right(i)
+        if m == i: stop
+        swap heap[i] and heap[m]
+        i = m
+```
 
-## 5. Time Complexity
+## 4. Complexity
 
-Let n represent the number of trip records.
+n = number of rows, K = result size.
 
-Each record is processed once. Therefore, the main counting operation takes O(n) time.
+| Step | Time | Space |
+|---|---|---|
+| Scan all rows (one comparison with the root each) | O(n) | |
+| Replace the root for a better row (at most once per row) | O(log K) each, O(n log K) worst case | |
+| Extract K items at the end | O(K log K) | |
+| **Total** | **O(n log K + K log K) = O(n log K)** | **O(K)** beyond the input |
 
-The script also writes a small number of summary rows. Sorting daily dates, if performed, takes O(d log d),where d is the number of distinct dates.
+A full sort is O(n log n) time and O(n) space. For K = 10 and n = 70,000 routes, the heap needs about 70,000 comparisons plus a few swaps, while a full sort needs roughly 1.1 million comparisons.
 
-Overall, the time complexity is O(n + d log d).
+Worst case for the heap is input already in ascending order (every row beats the root). Typical zone data replaces the root rarely.
 
-## 6. Space Complexity
+## 5. Testing
 
-The script processes the raw dataset in chunks rather than loading the entire dataset into memory.
+`tests/test_algorithms.py` checks:
+- heap operations (push, pop order, peek, replace_root, empty-heap errors)
+- `top_k` against Python's built-in `sorted()` on 200 random inputs (the built-in is used only inside the test as an independent reference)
+- edge cases: K larger than the input, K of 0 or negative, empty input, missing scores, ties, and that the input list is not modified
 
-The counters store summaries rather than individual trips. If c is the chunk size and d is the number of distinct dates, the working space is approximately O(c + d).
-
-## 7. Limitations
-
-- The analysis focuses on pickup timestamps and does not explain why demand changes.
-- The dataset represents January 2019, so the results may not represent other months or years.
-- Pickup counts show demand volume but do not measure passenger waiting times or unmet demand.
-
+A separate check compared the API ranking with `ORDER BY ... LIMIT 10` in SQL and the results matched.

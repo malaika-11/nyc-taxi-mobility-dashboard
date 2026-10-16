@@ -2,6 +2,8 @@ import { getHealth, getSummary, getHourlyDemand, getWeekdayAverage, getDailyDema
 
 import { renderHourlyChart, renderWeekdayChart, renderDailyChart,normalizeWeekdayRows, hourLabel, FIELDS,} from "./charts.js";
 
+import { initMap } from "./map.js";
+
 const PAGE_SIZE = 25;
 const state = { page: 1, totalPages: 1 };
 
@@ -222,6 +224,48 @@ async function fillBoroughs() {
     }
 }
 
+ 
+const RANK_FORMATS = {
+    pickup_count: v => formatNumber(v),
+    dropoff_count: v => formatNumber(v),
+    avg_fare: v => money(v),
+};
+ 
+async function loadTopZones() {
+    const select = $("rank-metric");
+    const list = $("rank-list");
+    if (!select || !list) return;
+    list.replaceChildren();
+    try {
+        const result = await getTopZones({ metric: select.value, k: 10 });
+        const fmt = RANK_FORMATS[result.metric] || formatNumber;
+        const top = result.data.length ? Number(result.data[0].value) : 0;
+        for (const row of result.data) {
+            const li = document.createElement("li");
+            const name = document.createElement("span");
+            name.className = "rank-name";
+            name.textContent = `${row.zone} (${row.borough})`;
+            const value = document.createElement("span");
+            value.className = "rank-value";
+            value.textContent = fmt(row.value);
+            const bar = document.createElement("span");
+            bar.className = "rank-bar";
+            bar.style.width = (top > 0 ? Math.round((Number(row.value) / top) * 100) : 0) + "%";
+            li.append(name, value, bar);
+            list.appendChild(li);
+        }
+        if (!result.data.length) {
+            const li = document.createElement("li");
+            li.textContent = "No zones to rank.";
+            list.appendChild(li);
+        }
+    } catch (err) {
+        const li = document.createElement("li");
+        li.textContent = "Could not load ranking: " + err.message;
+        list.appendChild(li);
+    }
+}
+ 
 async function init() {
     showStatus("Loading taxi demand data...");
 
@@ -274,6 +318,10 @@ async function init() {
 
     await fillBoroughs();
     await loadTrips();
+
+    const rankSelect = $("rank-metric");
+    if (rankSelect) rankSelect.addEventListener("change", loadTopZones);
+    await Promise.allSettled([initMap(), loadTopZones()]);
 
     if (problems.length) {
         showStatus(`Some parts failed to load. ${problems.join(" | ")}`, "error");
